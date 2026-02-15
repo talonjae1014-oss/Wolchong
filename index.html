@@ -440,6 +440,14 @@
        </select>
     </div>
 
+    <div id="pveBuildArea" style="display:none; text-align:center; margin-bottom:20px;">
+       <div style="font-size:0.8rem; color:#aaa; margin-bottom:5px;">🛠️ 빌드 선택</div>
+       <select id="pveBuildSelect" class="pve-select-box" onchange="changePveBuild()">
+         <option value="build1">빌드 1</option>
+         <option value="build2">빌드 2</option>
+       </select>
+    </div>
+
     <div id="pveViewMode">
       <div class="info-item full" style="margin-bottom:15px;">
         <span class="info-label">⚔️ 덱 조합</span>
@@ -1030,13 +1038,18 @@ window.rejectDef = (key) => {
 /* --- [PVE] 공성전/강림원정대 로직 --- */
 let pveCurrentCategory = "siege"; // siege or advent
 let pveCurrentId = "";
-let currentPveSubOption = null; // 턴수 또는 라운드
+let currentPveSubOption = null; // 턴수 또는 라운드 또는 빌드
 
+// [변경] 공성전에 type: "build" 속성 추가
 const PVE_DATA_KEYS = {
   siege: [
-    {id:"mon", name:"월요일 공성전"}, {id:"tue", name:"화요일 공성전"}, 
-    {id:"wed", name:"수요일 공성전"}, {id:"thu", name:"목요일 공성전"},
-    {id:"fri", name:"금요일 공성전"}, {id:"sat", name:"토요일 공성전"}, {id:"sun", name:"일요일 공성전"}
+    {id:"mon", name:"월요일 공성전", type:"build"}, 
+    {id:"tue", name:"화요일 공성전", type:"build"}, 
+    {id:"wed", name:"수요일 공성전", type:"build"}, 
+    {id:"thu", name:"목요일 공성전", type:"build"},
+    {id:"fri", name:"금요일 공성전", type:"build"}, 
+    {id:"sat", name:"토요일 공성전", type:"build"}, 
+    {id:"sun", name:"일요일 공성전", type:"build"}
   ],
   advent: [
     {id:"destruct1", name:"🔥 파괴신 1라", type:"turn", burn:true}, 
@@ -1082,10 +1095,12 @@ window.loadPveData = (cat, id, title, type) => {
 
   const turnArea = document.getElementById("pveTurnArea");
   const roundArea = document.getElementById("pveRoundArea");
+  const buildArea = document.getElementById("pveBuildArea");
 
   // 옵션 영역 초기화
   turnArea.style.display = 'none';
   roundArea.style.display = 'none';
+  buildArea.style.display = 'none';
   currentPveSubOption = null;
 
   if (type === 'turn') {
@@ -1094,6 +1109,12 @@ window.loadPveData = (cat, id, title, type) => {
   } else if (type === 'round') {
     roundArea.style.display = 'block';
     currentPveSubOption = document.getElementById("pveRoundSelect").value;
+  } else if (type === 'build') {
+    // [추가] 빌드 타입 처리
+    buildArea.style.display = 'block';
+    // 새 공성전 선택시 빌드1로 초기화 (선택사항)
+    document.getElementById("pveBuildSelect").value = "build1";
+    currentPveSubOption = "build1";
   }
   
   fetchPveRealData();
@@ -1108,6 +1129,12 @@ window.changePveTurn = () => {
 // 라운드 변경 시 호출
 window.changePveRound = () => {
   currentPveSubOption = document.getElementById("pveRoundSelect").value;
+  fetchPveRealData();
+};
+
+// [추가] 빌드 변경 시 호출
+window.changePveBuild = () => {
+  currentPveSubOption = document.getElementById("pveBuildSelect").value;
   fetchPveRealData();
 };
 
