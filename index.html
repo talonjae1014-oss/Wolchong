@@ -1428,27 +1428,29 @@ window.adjustScore = async (nick, type, delta) => {
   }
 };
 
-// [신규] 유저 개별 승패 로그 삭제 기능 (답지 미영향)
+// [수정된 유저 개별 승패 로그 삭제 기능 (답지 미영향, 개별 삭제 안전 보장)]
 window.deleteUserLogs = async (nick) => {
-  if(!confirm("탈퇴한 길드원의 승패 기록을 삭제하겠습니까?\n답지 승패에는 영향을 끼치지 않습니다.")) return;
+  if(!confirm("탈퇴한 길드원(" + nick + ")의 승패 기록을 삭제하겠습니까?\n답지 승패에는 영향을 끼치지 않습니다.")) return;
   
   const snap = await get(ref(db, "logs"));
   if (snap.exists()) {
-    const updates = {};
+    const promises = [];
     Object.entries(snap.val()).forEach(([key, val]) => {
       if (val.nick === nick) {
-        updates[key] = null; // 해당 로그 삭제
+        // 전체 업데이트(update) 대신, 해당 유저의 기록만 정확히 타겟팅하여 개별 삭제(remove)
+        promises.push(remove(ref(db, `logs/${key}`)));
       }
     });
     
-    if (Object.keys(updates).length > 0) {
-      await update(ref(db, "logs"), updates);
-      alert(`${nick} 님의 승패 기록이 삭제되었습니다.`);
+    if (promises.length > 0) {
+      await Promise.all(promises); // 안전하게 동시 삭제 처리
+      alert(`${nick} 님의 승패 기록이 안전하게 삭제되었습니다.`);
     } else {
       alert(`${nick} 님의 승패 기록이 없습니다.`);
     }
   }
 };
+
 
 // [신규] 시즌 초기화 (전체 승패 로그 삭제 기능 - 답지 미영향)
 window.resetSeason = async () => {
